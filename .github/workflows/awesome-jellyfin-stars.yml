@@ -1,0 +1,31 @@
+name: Awesome Jellyfin plugins by stars
+
+on:
+  workflow_dispatch:
+    inputs:
+      section:
+        description: "Only this plugin section (e.g. Playback). Leave empty for all."
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  stars:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sort plugins by stars
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SECTION: ${{ inputs.section }}
+        run: |
+          args=(--csv stars.csv)
+          [ -n "$SECTION" ] && args+=(--section "$SECTION")
+          python3 scripts/awesome-jellyfin-stars.py "${args[@]}" | tee stars.txt
+          { echo '## Awesome Jellyfin plugins by GitHub stars'; echo '```'; cat stars.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jellyfin-plugin-stars
+          path: stars.csv
