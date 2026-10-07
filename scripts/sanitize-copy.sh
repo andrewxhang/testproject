@@ -10,16 +10,16 @@ mkdir -p "$DEST"; DEST="$(cd "$DEST" && pwd)"
 
 # 1. Copy only text-ish config; skip data, DBs, logs, media, keys, env files.
 # Directories that are bulk, caches, app state or hold key material: never copied.
-PRUNE='node_modules|\.local|\.cache|\.cloakbrowser|cdn-cache|site-packages|Definitions|asp|plugins|telegram-desktop|state|\.git|cache|transcodes|MediaCover|Backups|backups|metadata|data|logs|nssdb|pki'
+PRUNE='changedetection|node_modules|\.local|\.cache|\.cloakbrowser|cdn-cache|site-packages|Definitions|asp|plugins|telegram-desktop|state|\.git|cache|transcodes|MediaCover|Backups|backups|metadata|data|logs|nssdb|pki'
 # Files that hold secrets or runtime data even though they look like config.
-SKIP_FILES='(^|/)(secret\.txt|squid-passwords\.txt|.*[Cc]url.*\.txt|state\.json|history.*\.txt|last-checksum\.txt|.*-cache\.json|provider-cache\.json|.*\.env|\.env.*|acme\.json|wg.*\.conf)$'
+SKIP_FILES='(^|/)(secret\.txt|squid-passwords\.txt|.*[Cc]url.*\.txt|state\.json|manual-status\.json|history.*\.txt|last-checksum\.txt|.*-cache\.json|provider-cache\.json|.*\.env|\.env.*|acme\.json|wg.*\.conf)$'
 (cd "$SRC" && find . -type f \( -name '*.yml' -o -name '*.yaml' -o -name '*.json' -o -name '*.xml' \
      -o -name '*.conf' -o -name '*.ini' -o -name '*.toml' -o -name '*.sh' -o -name '*.md' \
      -o -name 'Caddyfile' -o -name 'Dockerfile*' -o -name '*.cfg' -o -name '*.txt' \) -print0 2>/dev/null \
   | grep -zvE "(^|/)($PRUNE)(/|$)" | grep -zvE "$SKIP_FILES" \
   | xargs -0 -r cp --parents -t "$DEST" 2>/dev/null || true)
 # Drop runtime blobs named by UUID/hash directories (changedetection watches etc.)
-find "$DEST" -type f -regextype posix-extended -regex '.*/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f-]{27}/.*' -delete 2>/dev/null || true
+find "$DEST" -type f -regextype posix-extended -regex '.*/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f-]{22}/.*' -delete 2>/dev/null || true
 find "$DEST" -type d -empty -delete 2>/dev/null || true
 
 # 2. Redact secrets in the copied files.
